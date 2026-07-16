@@ -1,0 +1,272 @@
+<!DOCTYPE html>
+<html lang="sl">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Terminko — prosti termini vozniških izpitov</title>
+<meta name="description" content="Prosti termini za vozniške izpite (teorija in vožnja) po vsej Sloveniji, na enem mestu.">
+<meta name="theme-color" content="#1466C2">
+<link rel="manifest" href="manifest.webmanifest">
+<link rel="icon" href="icon-192.png">
+<link rel="apple-touch-icon" href="icon-192.png">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="default">
+<meta name="apple-mobile-web-app-title" content="Terminko">
+<style>
+  :root{
+    --blue:#1466C2; --blue-dark:#0A3A73; --blue-light:#DCEAFB;
+    --green:#2E9E5B; --green-light:#E3F2E9;
+    --bg:#F7F9FC; --card:#FFFFFF; --txt:#1A1C1E; --mut:#5A6472;
+    --line:#E1E6EC;
+  }
+  @media (prefers-color-scheme: dark){
+    :root{
+      --bg:#101418; --card:#171C22; --txt:#E2E4E8; --mut:#9AA4B0;
+      --line:#2A323B; --blue-light:#1E3A5F; --green-light:#1F3D2F;
+    }
+  }
+  *{box-sizing:border-box; -webkit-tap-highlight-color:transparent}
+  body{margin:0; font:15px/1.5 system-ui,-apple-system,Segoe UI,Roboto,sans-serif;
+       background:var(--bg); color:var(--txt); padding-bottom:40px}
+
+  header{position:sticky; top:0; z-index:20; background:var(--blue); color:#fff;
+         padding:calc(env(safe-area-inset-top) + 12px) 16px 12px;
+         display:flex; align-items:center; gap:10px}
+  header img{width:34px; height:34px; border-radius:8px}
+  header h1{margin:0; font-size:19px; flex:1}
+  .installBtn{background:#ffffff22; border:1px solid #ffffff55; color:#fff;
+              border-radius:20px; padding:7px 14px; font-size:13px; font-weight:600; cursor:pointer}
+
+  .filters{display:flex; gap:8px; padding:12px 16px; overflow-x:auto;
+           position:sticky; top:calc(env(safe-area-inset-top) + 58px); z-index:15;
+           background:var(--bg); border-bottom:1px solid var(--line)}
+  .filters::-webkit-scrollbar{display:none}
+  select,input[type=search]{font:inherit; background:var(--card); color:var(--txt);
+       border:1px solid var(--line); border-radius:10px; padding:8px 10px; min-width:0}
+  select{flex-shrink:0}
+  input[type=search]{flex:1; min-width:110px}
+
+  .status{padding:10px 16px; font-size:13px; color:var(--mut);
+          display:flex; justify-content:space-between; gap:8px; flex-wrap:wrap}
+  .status b{color:var(--green)}
+
+  .wake{margin:18px 16px; padding:16px; background:var(--blue-light); border-radius:14px;
+        text-align:center; font-size:14px; line-height:1.6}
+  .spin{display:inline-block; width:15px; height:15px; border:2px solid var(--blue);
+        border-top-color:transparent; border-radius:50%; animation:s .8s linear infinite;
+        vertical-align:-2px; margin-right:7px}
+  @keyframes s{to{transform:rotate(360deg)}}
+
+  .day{margin:16px 16px 6px; font-weight:700; font-size:15px; color:var(--blue);
+       display:flex; align-items:center; gap:8px}
+  .day small{color:var(--mut); font-weight:400}
+  .slot{background:var(--card); border:1px solid var(--line); border-radius:14px;
+        margin:8px 16px; padding:12px 14px; display:flex; gap:12px; align-items:center}
+  .slot .time{font-size:17px; font-weight:800; font-variant-numeric:tabular-nums;
+              color:var(--txt); min-width:52px}
+  .slot .info{flex:1; min-width:0}
+  .slot .city{font-weight:700}
+  .slot .sub{font-size:12.5px; color:var(--mut); white-space:nowrap; overflow:hidden;
+             text-overflow:ellipsis}
+  .pill{font-size:11px; font-weight:700; padding:3px 9px; border-radius:8px; flex-shrink:0}
+  .pill.voz{background:var(--blue-light); color:var(--blue)}
+  @media (prefers-color-scheme: dark){ .pill.voz{color:#9CC5F2} .pill.teo{color:#86D8A8} }
+  .pill.teo{background:var(--green-light); color:var(--green)}
+  .empty{padding:60px 24px; text-align:center; color:var(--mut)}
+
+  /* Install sheet */
+  .sheetBack{position:fixed; inset:0; background:#0008; z-index:50; display:none}
+  .sheetBack.open{display:block}
+  .sheet{position:fixed; left:0; right:0; bottom:0; z-index:51; background:var(--card);
+         border-radius:20px 20px 0 0; padding:20px 20px calc(env(safe-area-inset-bottom) + 24px);
+         transform:translateY(105%); transition:transform .25s ease; max-height:85vh; overflow-y:auto}
+  .sheet.open{transform:translateY(0)}
+  .sheet h2{margin:0 0 4px; font-size:18px}
+  .sheet h3{margin:18px 0 6px; font-size:15px; display:flex; align-items:center; gap:8px}
+  .sheet p, .sheet li{font-size:14px; color:var(--mut); margin:4px 0}
+  .sheet ol{padding-left:20px; margin:6px 0}
+  .dlBtn{display:block; text-align:center; background:var(--blue); color:#fff; text-decoration:none;
+         font-weight:700; padding:13px; border-radius:12px; margin:10px 0}
+  .closeBtn{position:absolute; top:14px; right:16px; background:none; border:none;
+            font-size:22px; color:var(--mut); cursor:pointer}
+  .grab{width:40px; height:4px; border-radius:2px; background:var(--line); margin:0 auto 14px}
+</style>
+</head>
+<body>
+
+<header>
+  <img src="icon-192.png" alt="">
+  <h1>Terminko</h1>
+  <button class="installBtn" id="installBtn">📲 Namesti</button>
+</header>
+
+<div class="filters">
+  <select id="fVrsta">
+    <option value="">Obe vrsti</option>
+    <option value="Voznja">Vožnja</option>
+    <option value="Teorija">Teorija</option>
+  </select>
+  <select id="fCat">
+    <option value="">Vse kat.</option>
+    <option selected>B</option>
+    <option>A</option><option>A1</option><option>A2</option><option>AM</option>
+    <option>B1</option><option>BE</option><option>C</option><option>C1</option>
+    <option>C1E</option><option>CE</option><option>D</option><option>D1</option>
+    <option>D1E</option><option>DE</option><option>F</option><option>G</option>
+  </select>
+  <select id="fObm">
+    <option value="">Vsa območja</option>
+    <option value="Območje 1">Obm. 1 — Primorska</option>
+    <option value="Območje 2">Obm. 2 — LJ/Gorenjska</option>
+    <option value="Območje 3">Obm. 3 — Celje/Koroška</option>
+    <option value="Območje 4">Obm. 4 — Dolenjska</option>
+    <option value="Območje 5">Obm. 5 — Štajerska</option>
+  </select>
+  <select id="fDni">
+    <option value="">Kadarkoli</option>
+    <option value="7">7 dni</option>
+    <option value="14">14 dni</option>
+    <option value="30" selected>30 dni</option>
+    <option value="60">60 dni</option>
+  </select>
+  <input type="search" id="fIsk" placeholder="Mesto…">
+</div>
+
+<div class="status">
+  <span>Najdenih: <b id="cnt">–</b></span>
+  <span id="fresh"></span>
+</div>
+
+<div id="out"></div>
+
+<!-- Install sheet -->
+<div class="sheetBack" id="sheetBack"></div>
+<div class="sheet" id="sheet">
+  <div class="grab"></div>
+  <button class="closeBtn" id="sheetClose">✕</button>
+  <h2>Namesti Terminko</h2>
+  <p>Aplikacija je brezplačna in ne zahteva registracije.</p>
+
+  <h3>🤖 Android</h3>
+  <a class="dlBtn" href="terminko.apk" download>⬇️ Prenesi APK (Android)</a>
+  <ol>
+    <li>Prenesi datoteko in jo odpri.</li>
+    <li>Če telefon vpraša, dovoli <i>»namestitev iz neznanih virov«</i>.</li>
+    <li>Namesti in odpri — deluje z obvestili v ozadju!</li>
+  </ol>
+
+  <h3>🍎 iPhone / iPad</h3>
+  <ol>
+    <li>Odpri to stran v <b>Safariju</b>.</li>
+    <li>Tapni gumb <b>Deli</b> (kvadrat s puščico ↑).</li>
+    <li>Izberi <b>»Dodaj na začetni zaslon«</b> (Add to Home Screen).</li>
+  </ol>
+  <p>Terminko se doda kot aplikacija na začetni zaslon.</p>
+
+  <h3>💻 Računalnik</h3>
+  <p>Samo shrani ta naslov med zaznamke — deluje v vsakem brskalniku.</p>
+
+  <p style="margin-top:16px; font-size:12px">Terminko je neuradna aplikacija in ni povezana
+  z e-Upravo ali Republiko Slovenijo. Podatki: e-uprava.gov.si.</p>
+</div>
+
+<script>
+const API = localStorage.getItem("terminko_api") ||
+            new URLSearchParams(location.search).get("api") ||
+            "https://terminko-backend.onrender.com";
+if (new URLSearchParams(location.search).get("api"))
+  localStorage.setItem("terminko_api", new URLSearchParams(location.search).get("api"));
+
+const $ = s => document.querySelector(s);
+let debounceT = null, wakeTries = 0;
+
+function fmtDate(iso){
+  const d = new Date(iso + "T00:00:00");
+  const dnevi = ["nedelja","ponedeljek","torek","sreda","četrtek","petek","sobota"];
+  return d.toLocaleDateString("sl-SI", {day:"numeric", month:"long"}) + " · " + dnevi[d.getDay()];
+}
+
+async function load(){
+  const p = new URLSearchParams();
+  if ($("#fVrsta").value) p.set("vrsta", $("#fVrsta").value);
+  if ($("#fCat").value)   p.set("cat",   $("#fCat").value);
+  if ($("#fObm").value)   p.set("obmocje", $("#fObm").value);
+  if ($("#fIsk").value.trim()) p.set("lokacija", $("#fIsk").value.trim());
+  if ($("#fDni").value){
+    const t = new Date(), e = new Date();
+    e.setDate(e.getDate() + parseInt($("#fDni").value));
+    p.set("dateFrom", t.toISOString().slice(0,10));
+    p.set("dateTo",   e.toISOString().slice(0,10));
+  }
+
+  $("#out").innerHTML = '<div class="wake"><span class="spin"></span>Nalagam termine…</div>';
+  try{
+    const ctrl = new AbortController();
+    setTimeout(() => ctrl.abort(), 15000);
+    const r = await fetch(API + "/api/slots?" + p, {signal: ctrl.signal});
+    if(!r.ok) throw new Error("HTTP " + r.status);
+    const d = await r.json();
+    wakeTries = 0;
+    render(d);
+  }catch(e){
+    wakeTries++;
+    if(wakeTries <= 12){
+      $("#out").innerHTML = '<div class="wake"><span class="spin"></span>' +
+        '<b>Strežnik se prebuja…</b><br>Brezplačni strežnik po neaktivnosti zaspi — ' +
+        'zbujanje traja do minute. Poskušam znova (' + wakeTries + '/12).</div>';
+      setTimeout(load, 10000);
+    }else{
+      $("#out").innerHTML = '<div class="empty">Strežnik trenutno ni dosegljiv. Poskusi kasneje.</div>';
+    }
+  }
+}
+
+function render(d){
+  $("#cnt").textContent = d.count;
+  if(d.last_fetch_seconds_ago != null){
+    const min = Math.round(d.last_fetch_seconds_ago / 60);
+    $("#fresh").textContent = "podatki stari " + (min < 1 ? "<1 min" : min + " min");
+  }
+  if(!d.slots.length){
+    $("#out").innerHTML = '<div class="empty">Ni terminov za izbrane filtre. 🔍<br>Poskusi razširiti iskanje.</div>';
+    return;
+  }
+  let html = "", lastDay = "";
+  for(const s of d.slots){
+    if(s.datum_iso !== lastDay){
+      lastDay = s.datum_iso;
+      html += '<div class="day">📅 ' + fmtDate(s.datum_iso) + '</div>';
+    }
+    const pill = s.vrsta === "Teorija"
+      ? '<span class="pill teo">Teorija</span>'
+      : '<span class="pill voz">Vožnja</span>';
+    html += '<div class="slot"><div class="time">' + esc(s.ura) + '</div>' +
+      '<div class="info"><div class="city">' + esc(s.mesto) + '</div>' +
+      '<div class="sub">' + esc(s.kategorije) + (s.naslov ? " · " + esc(s.naslov) : "") + '</div></div>' +
+      pill + '</div>';
+  }
+  $("#out").innerHTML = html;
+}
+
+function esc(x){ return String(x ?? "").replace(/[&<>"]/g,
+  c => ({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;"}[c])); }
+
+document.querySelectorAll(".filters select").forEach(el => el.onchange = load);
+$("#fIsk").oninput = () => { clearTimeout(debounceT); debounceT = setTimeout(load, 400); };
+
+// Install sheet
+const open = () => { $("#sheet").classList.add("open"); $("#sheetBack").classList.add("open"); };
+const close = () => { $("#sheet").classList.remove("open"); $("#sheetBack").classList.remove("open"); };
+$("#installBtn").onclick = open;
+$("#sheetClose").onclick = close;
+$("#sheetBack").onclick = close;
+
+// Native PWA install prompt (Android Chrome)
+let deferredPrompt = null;
+window.addEventListener("beforeinstallprompt", e => { e.preventDefault(); deferredPrompt = e; });
+
+if("serviceWorker" in navigator) navigator.serviceWorker.register("sw.js");
+load();
+</script>
+</body>
+</html>

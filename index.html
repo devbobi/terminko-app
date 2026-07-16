@@ -2,7 +2,7 @@
 <html lang="sl">
 <head>
 <meta charset="utf-8">
-<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover, maximum-scale=1">
 <title>Terminko — prosti termini vozniških izpitov</title>
 <meta name="description" content="Prosti termini za vozniške izpite (teorija in vožnja) po vsej Sloveniji, na enem mestu.">
 <meta name="theme-color" content="#1466C2">
@@ -10,240 +10,405 @@
 <link rel="icon" href="icon-192.png">
 <link rel="apple-touch-icon" href="icon-192.png">
 <meta name="apple-mobile-web-app-capable" content="yes">
-<meta name="apple-mobile-web-app-status-bar-style" content="default">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
 <meta name="apple-mobile-web-app-title" content="Terminko">
 <style>
   :root{
-    --blue:#1466C2; --blue-dark:#0A3A73; --blue-light:#DCEAFB;
-    --green:#2E9E5B; --green-light:#E3F2E9;
-    --bg:#F7F9FC; --card:#FFFFFF; --txt:#1A1C1E; --mut:#5A6472;
-    --line:#E1E6EC;
+    --blue:#1466C2; --blue-600:#1257a8; --blue-dark:#0A3A73; --blue-050:#EAF2FC;
+    --green:#2E9E5B; --green-050:#E6F4EC;
+    --bg:#F4F7FB; --card:#FFFFFF; --txt:#141A21; --mut:#66727F;
+    --line:#E6ECF3; --line-2:#EEF3F8; --shadow:0 1px 3px rgba(20,40,70,.06),0 6px 18px rgba(20,40,70,.05);
+    --seg:#EDF1F6;
   }
   @media (prefers-color-scheme: dark){
     :root{
-      --bg:#101418; --card:#171C22; --txt:#E2E4E8; --mut:#9AA4B0;
-      --line:#2A323B; --blue-light:#1E3A5F; --green-light:#1F3D2F;
+      --blue:#4E9BEC; --blue-600:#6BAEF2; --blue-dark:#9CC5F2; --blue-050:#16273C;
+      --green:#4FBE7E; --green-050:#152A1E;
+      --bg:#0D1117; --card:#161C24; --txt:#E6EAF0; --mut:#93A0AF;
+      --line:#252D37; --line-2:#1E252E; --shadow:0 1px 3px rgba(0,0,0,.3),0 6px 18px rgba(0,0,0,.25);
+      --seg:#1E252E;
     }
   }
   *{box-sizing:border-box; -webkit-tap-highlight-color:transparent}
-  body{margin:0; font:15px/1.5 system-ui,-apple-system,Segoe UI,Roboto,sans-serif;
-       background:var(--bg); color:var(--txt); padding-bottom:40px}
+  html,body{overscroll-behavior-y:none}
+  body{margin:0; font:15px/1.5 -apple-system,BlinkMacSystemFont,"SF Pro Text",system-ui,Segoe UI,Roboto,sans-serif;
+       background:var(--bg); color:var(--txt); padding-bottom:calc(env(safe-area-inset-bottom) + 30px);
+       -webkit-font-smoothing:antialiased}
 
-  header{position:sticky; top:0; z-index:20; background:var(--blue); color:#fff;
-         padding:calc(env(safe-area-inset-top) + 12px) 16px 12px;
-         display:flex; align-items:center; gap:10px}
-  header img{width:34px; height:34px; border-radius:8px}
-  header h1{margin:0; font-size:19px; flex:1}
-  .installBtn{background:#ffffff22; border:1px solid #ffffff55; color:#fff;
-              border-radius:20px; padding:7px 14px; font-size:13px; font-weight:600; cursor:pointer}
+  /* ---------- Header ---------- */
+  header{position:sticky; top:0; z-index:30;
+         background:linear-gradient(135deg,#1466C2,#0E4E9B);
+         color:#fff; padding:calc(env(safe-area-inset-top) + 14px) 18px 14px;
+         display:flex; align-items:center; gap:11px; box-shadow:0 2px 12px rgba(10,50,100,.18)}
+  header .logo{width:36px; height:36px; border-radius:9px; box-shadow:0 2px 6px rgba(0,0,0,.2)}
+  header .ttl{flex:1; min-width:0}
+  header h1{margin:0; font-size:19px; font-weight:800; letter-spacing:-.02em}
+  header .sub{font-size:11.5px; opacity:.85; margin-top:1px}
+  .installBtn{background:rgba(255,255,255,.16); border:1px solid rgba(255,255,255,.35);
+              color:#fff; border-radius:22px; padding:8px 14px; font-size:13px; font-weight:700;
+              cursor:pointer; white-space:nowrap; display:flex; align-items:center; gap:5px}
+  .installBtn:active{transform:scale(.96)}
 
-  .filters{display:flex; gap:8px; padding:12px 16px; overflow-x:auto;
-           position:sticky; top:calc(env(safe-area-inset-top) + 58px); z-index:15;
-           background:var(--bg); border-bottom:1px solid var(--line)}
-  .filters::-webkit-scrollbar{display:none}
-  select,input[type=search]{font:inherit; background:var(--card); color:var(--txt);
-       border:1px solid var(--line); border-radius:10px; padding:8px 10px; min-width:0}
-  select{flex-shrink:0}
-  input[type=search]{flex:1; min-width:110px}
+  /* ---------- Filter card ---------- */
+  .fwrap{padding:14px 14px 4px}
+  .fcard{background:var(--card); border:1px solid var(--line); border-radius:18px;
+         box-shadow:var(--shadow); padding:15px 15px 17px}
+  .fhead{display:flex; align-items:center; gap:8px; margin-bottom:13px}
+  .fhead .ic{width:26px; height:26px; border-radius:8px; background:var(--blue-050); color:var(--blue);
+             display:grid; place-items:center; font-size:15px}
+  .fhead h2{margin:0; font-size:15px; font-weight:800; flex:1; letter-spacing:-.01em}
+  .fhead .reset{background:none; border:none; color:var(--blue); font-size:13px; font-weight:700;
+                cursor:pointer; padding:4px 2px}
+  .field{margin-top:13px}
+  .field:first-of-type{margin-top:0}
+  .lab{font-size:11px; font-weight:800; letter-spacing:.05em; text-transform:uppercase;
+       color:var(--mut); margin:0 0 7px 2px}
+  select{width:100%; font:inherit; font-weight:600; background:var(--card); color:var(--txt);
+         border:1.5px solid var(--line); border-radius:12px; padding:12px 38px 12px 13px; appearance:none;
+         background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='20' height='20' fill='none' stroke='%2366727F' stroke-width='2' stroke-linecap='round'%3E%3Cpath d='M5 8l5 5 5-5'/%3E%3C/svg%3E");
+         background-repeat:no-repeat; background-position:right 12px center}
+  select:disabled{opacity:.5}
+  .two{display:flex; gap:10px}
+  .two>div{flex:1; min-width:0}
 
-  .status{padding:10px 16px; font-size:13px; color:var(--mut);
-          display:flex; justify-content:space-between; gap:8px; flex-wrap:wrap}
-  .status b{color:var(--green)}
+  /* Segmented control */
+  .seg{display:flex; background:var(--seg); border-radius:12px; padding:3px; gap:3px; overflow-x:auto}
+  .seg::-webkit-scrollbar{display:none}
+  .seg label{flex:1; min-width:max-content; text-align:center; font-size:13.5px; font-weight:700;
+             color:var(--mut); padding:9px 12px; border-radius:9px; cursor:pointer; white-space:nowrap;
+             transition:.12s}
+  .seg input{position:absolute; opacity:0; pointer-events:none}
+  .seg input:checked + label{background:var(--card); color:var(--blue); box-shadow:0 1px 4px rgba(20,40,70,.12)}
 
-  .wake{margin:18px 16px; padding:16px; background:var(--blue-light); border-radius:14px;
-        text-align:center; font-size:14px; line-height:1.6}
-  .spin{display:inline-block; width:15px; height:15px; border:2px solid var(--blue);
-        border-top-color:transparent; border-radius:50%; animation:s .8s linear infinite;
-        vertical-align:-2px; margin-right:7px}
-  @keyframes s{to{transform:rotate(360deg)}}
+  /* ---------- Results bar ---------- */
+  .rbar{position:sticky; top:calc(env(safe-area-inset-top) + 64px); z-index:20;
+        margin:12px 14px 2px; background:var(--card); border:1px solid var(--line);
+        border-radius:13px; padding:11px 15px; box-shadow:var(--shadow);
+        display:flex; align-items:center; gap:10px; font-size:13.5px}
+  .rbar .cnt{font-weight:800; font-size:15px}
+  .rbar .cnt b{color:var(--blue)}
+  .rbar .fresh{color:var(--mut); font-size:12px; margin-left:auto; text-align:right}
+  .dot{width:7px; height:7px; border-radius:50%; background:var(--green); flex-shrink:0;
+       box-shadow:0 0 0 3px var(--green-050)}
 
-  .day{margin:16px 16px 6px; font-weight:700; font-size:15px; color:var(--blue);
-       display:flex; align-items:center; gap:8px}
-  .day small{color:var(--mut); font-weight:400}
-  .slot{background:var(--card); border:1px solid var(--line); border-radius:14px;
-        margin:8px 16px; padding:12px 14px; display:flex; gap:12px; align-items:center}
-  .slot .time{font-size:17px; font-weight:800; font-variant-numeric:tabular-nums;
-              color:var(--txt); min-width:52px}
+  /* ---------- Day + slots ---------- */
+  .day{margin:20px 18px 8px; font-weight:800; font-size:14px; color:var(--txt);
+       display:flex; align-items:baseline; gap:8px; letter-spacing:-.01em}
+  .day .cap{text-transform:capitalize}
+  .day small{color:var(--mut); font-weight:600; font-size:12px}
+  .slot{background:var(--card); border:1px solid var(--line); border-radius:15px;
+        margin:8px 14px; padding:13px 15px; display:flex; gap:13px; align-items:center;
+        box-shadow:var(--shadow)}
+  .slot .time{font-size:19px; font-weight:800; font-variant-numeric:tabular-nums; letter-spacing:-.02em;
+              min-width:56px; color:var(--txt)}
+  .slot .bar{width:3px; align-self:stretch; border-radius:3px; background:var(--blue); opacity:.5}
+  .slot.teo .bar{background:var(--green)}
   .slot .info{flex:1; min-width:0}
-  .slot .city{font-weight:700}
-  .slot .sub{font-size:12.5px; color:var(--mut); white-space:nowrap; overflow:hidden;
-             text-overflow:ellipsis}
-  .pill{font-size:11px; font-weight:700; padding:3px 9px; border-radius:8px; flex-shrink:0}
-  .pill.voz{background:var(--blue-light); color:var(--blue)}
-  @media (prefers-color-scheme: dark){ .pill.voz{color:#9CC5F2} .pill.teo{color:#86D8A8} }
-  .pill.teo{background:var(--green-light); color:var(--green)}
-  .empty{padding:60px 24px; text-align:center; color:var(--mut)}
+  .slot .city{font-weight:800; font-size:15px; letter-spacing:-.01em}
+  .slot .sub{font-size:12.5px; color:var(--mut); margin-top:2px; overflow:hidden;
+             text-overflow:ellipsis; white-space:nowrap}
+  .pill{font-size:11px; font-weight:800; padding:5px 10px; border-radius:9px; flex-shrink:0}
+  .pill.voz{background:var(--blue-050); color:var(--blue)}
+  .pill.teo{background:var(--green-050); color:var(--green)}
 
-  /* Install sheet */
-  .sheetBack{position:fixed; inset:0; background:#0008; z-index:50; display:none}
-  .sheetBack.open{display:block}
+  /* ---------- States ---------- */
+  .state{margin:20px 16px; padding:26px 22px; background:var(--card); border:1px solid var(--line);
+         border-radius:18px; text-align:center; box-shadow:var(--shadow)}
+  .state .big{font-size:34px; margin-bottom:8px}
+  .state h3{margin:0 0 5px; font-size:16px}
+  .state p{margin:0; color:var(--mut); font-size:13.5px; line-height:1.55}
+  .spin{display:inline-block; width:17px; height:17px; border:2.5px solid var(--blue);
+        border-top-color:transparent; border-radius:50%; animation:sp .75s linear infinite;
+        vertical-align:-3px; margin-right:8px}
+  @keyframes sp{to{transform:rotate(360deg)}}
+  .prog{height:5px; background:var(--seg); border-radius:3px; overflow:hidden; margin:14px auto 0; max-width:220px}
+  .prog>i{display:block; height:100%; background:var(--blue); transition:width .3s}
+
+  /* ---------- Install sheet ---------- */
+  .sheetBack{position:fixed; inset:0; background:rgba(10,20,35,.55); z-index:50; opacity:0;
+             pointer-events:none; transition:.25s; backdrop-filter:blur(3px)}
+  .sheetBack.open{opacity:1; pointer-events:auto}
   .sheet{position:fixed; left:0; right:0; bottom:0; z-index:51; background:var(--card);
-         border-radius:20px 20px 0 0; padding:20px 20px calc(env(safe-area-inset-bottom) + 24px);
-         transform:translateY(105%); transition:transform .25s ease; max-height:85vh; overflow-y:auto}
+         border-radius:22px 22px 0 0; padding:8px 20px calc(env(safe-area-inset-bottom) + 26px);
+         transform:translateY(105%); transition:transform .28s cubic-bezier(.22,1,.36,1);
+         max-height:88vh; overflow-y:auto; box-shadow:0 -8px 40px rgba(0,0,0,.25)}
   .sheet.open{transform:translateY(0)}
-  .sheet h2{margin:0 0 4px; font-size:18px}
-  .sheet h3{margin:18px 0 6px; font-size:15px; display:flex; align-items:center; gap:8px}
-  .sheet p, .sheet li{font-size:14px; color:var(--mut); margin:4px 0}
-  .sheet ol{padding-left:20px; margin:6px 0}
-  .dlBtn{display:block; text-align:center; background:var(--blue); color:#fff; text-decoration:none;
-         font-weight:700; padding:13px; border-radius:12px; margin:10px 0}
-  .closeBtn{position:absolute; top:14px; right:16px; background:none; border:none;
-            font-size:22px; color:var(--mut); cursor:pointer}
-  .grab{width:40px; height:4px; border-radius:2px; background:var(--line); margin:0 auto 14px}
+  .grab{width:38px; height:5px; border-radius:3px; background:var(--line); margin:8px auto 16px}
+  .sheet h2{margin:0 0 4px; font-size:20px; letter-spacing:-.02em}
+  .sheet>p.lead{margin:0 0 6px; color:var(--mut); font-size:14px}
+  .plat{border:1px solid var(--line); border-radius:15px; padding:14px 15px; margin-top:13px; background:var(--bg)}
+  .plat h3{margin:0 0 9px; font-size:15.5px; display:flex; align-items:center; gap:8px}
+  .plat ol{padding-left:19px; margin:0; font-size:13.5px; color:var(--mut); line-height:1.7}
+  .plat b{color:var(--txt)}
+  .dlBtn{display:flex; align-items:center; justify-content:center; gap:8px;
+         background:var(--blue); color:#fff; text-decoration:none; font-weight:800; font-size:15px;
+         padding:14px; border-radius:13px; margin-bottom:11px; box-shadow:0 4px 14px rgba(20,102,194,.3)}
+  .dlBtn:active{transform:scale(.98)}
+  .foot{margin-top:16px; font-size:11.5px; color:var(--mut); line-height:1.5; text-align:center}
 </style>
 </head>
 <body>
 
 <header>
-  <img src="icon-192.png" alt="">
-  <h1>Terminko</h1>
+  <img class="logo" src="icon-192.png" alt="">
+  <div class="ttl">
+    <h1>Terminko</h1>
+    <div class="sub">Prosti termini vozniških izpitov</div>
+  </div>
   <button class="installBtn" id="installBtn">📲 Namesti</button>
 </header>
 
-<div class="filters">
-  <select id="fVrsta">
-    <option value="">Obe vrsti</option>
-    <option value="Voznja">Vožnja</option>
-    <option value="Teorija">Teorija</option>
-  </select>
-  <select id="fCat">
-    <option value="">Vse kat.</option>
-    <option selected>B</option>
-    <option>A</option><option>A1</option><option>A2</option><option>AM</option>
-    <option>B1</option><option>BE</option><option>C</option><option>C1</option>
-    <option>C1E</option><option>CE</option><option>D</option><option>D1</option>
-    <option>D1E</option><option>DE</option><option>F</option><option>G</option>
-  </select>
-  <select id="fObm">
-    <option value="">Vsa območja</option>
-    <option value="Območje 1">Obm. 1 — Primorska</option>
-    <option value="Območje 2">Obm. 2 — LJ/Gorenjska</option>
-    <option value="Območje 3">Obm. 3 — Celje/Koroška</option>
-    <option value="Območje 4">Obm. 4 — Dolenjska</option>
-    <option value="Območje 5">Obm. 5 — Štajerska</option>
-  </select>
-  <select id="fDni">
-    <option value="">Kadarkoli</option>
-    <option value="7">7 dni</option>
-    <option value="14">14 dni</option>
-    <option value="30" selected>30 dni</option>
-    <option value="60">60 dni</option>
-  </select>
-  <input type="search" id="fIsk" placeholder="Mesto…">
+<!-- FILTRI -->
+<div class="fwrap">
+  <div class="fcard">
+    <div class="fhead">
+      <div class="ic">🔎</div>
+      <h2>Filtri</h2>
+      <button class="reset" id="reset">Ponastavi</button>
+    </div>
+
+    <div class="field">
+      <div class="lab">Vrsta izpita</div>
+      <div class="seg" id="segVrsta">
+        <input type="radio" name="vrsta" id="v_" value="" checked><label for="v_">Obe</label>
+        <input type="radio" name="vrsta" id="v_Voznja" value="Voznja"><label for="v_Voznja">🚗 Vožnja</label>
+        <input type="radio" name="vrsta" id="v_Teorija" value="Teorija"><label for="v_Teorija">📘 Teorija</label>
+      </div>
+    </div>
+
+    <div class="field two">
+      <div>
+        <div class="lab">Kategorija</div>
+        <select id="fCat">
+          <option value="">Vse</option>
+          <option selected>B</option>
+          <option>A</option><option>A1</option><option>A2</option><option>AM</option>
+          <option>B1</option><option>BE</option><option>C</option><option>C1</option>
+          <option>C1E</option><option>CE</option><option>D</option><option>D1</option>
+          <option>D1E</option><option>DE</option><option>F</option><option>G</option>
+        </select>
+      </div>
+      <div>
+        <div class="lab">Območje</div>
+        <select id="fObm"></select>
+      </div>
+    </div>
+
+    <div class="field">
+      <div class="lab">Kraj</div>
+      <select id="fKraj"></select>
+    </div>
+
+    <div class="field">
+      <div class="lab">Obdobje</div>
+      <div class="seg" id="segDni">
+        <input type="radio" name="dni" id="d_" value=""><label for="d_">Kadarkoli</label>
+        <input type="radio" name="dni" id="d_7" value="7"><label for="d_7">7 dni</label>
+        <input type="radio" name="dni" id="d_14" value="14"><label for="d_14">14 dni</label>
+        <input type="radio" name="dni" id="d_30" value="30" checked><label for="d_30">30 dni</label>
+        <input type="radio" name="dni" id="d_60" value="60"><label for="d_60">60 dni</label>
+      </div>
+    </div>
+  </div>
 </div>
 
-<div class="status">
-  <span>Najdenih: <b id="cnt">–</b></span>
-  <span id="fresh"></span>
+<!-- RESULTS BAR -->
+<div class="rbar" id="rbar" hidden>
+  <span class="dot"></span>
+  <span class="cnt">Najdenih: <b id="cnt">0</b> terminov</span>
+  <span class="fresh" id="fresh"></span>
 </div>
 
 <div id="out"></div>
 
-<!-- Install sheet -->
+<!-- INSTALL SHEET -->
 <div class="sheetBack" id="sheetBack"></div>
 <div class="sheet" id="sheet">
   <div class="grab"></div>
-  <button class="closeBtn" id="sheetClose">✕</button>
   <h2>Namesti Terminko</h2>
-  <p>Aplikacija je brezplačna in ne zahteva registracije.</p>
+  <p class="lead">Brezplačno, brez registracije. Izberi svojo napravo:</p>
 
-  <h3>🤖 Android</h3>
-  <a class="dlBtn" href="terminko.apk" download>⬇️ Prenesi APK (Android)</a>
-  <ol>
-    <li>Prenesi datoteko in jo odpri.</li>
-    <li>Če telefon vpraša, dovoli <i>»namestitev iz neznanih virov«</i>.</li>
-    <li>Namesti in odpri — deluje z obvestili v ozadju!</li>
-  </ol>
+  <a class="dlBtn" id="apkBtn" href="terminko.apk" download>⬇️ Prenesi za Android (APK)</a>
 
-  <h3>🍎 iPhone / iPad</h3>
-  <ol>
-    <li>Odpri to stran v <b>Safariju</b>.</li>
-    <li>Tapni gumb <b>Deli</b> (kvadrat s puščico ↑).</li>
-    <li>Izberi <b>»Dodaj na začetni zaslon«</b> (Add to Home Screen).</li>
-  </ol>
-  <p>Terminko se doda kot aplikacija na začetni zaslon.</p>
+  <div class="plat">
+    <h3>🍎 iPhone / iPad</h3>
+    <ol>
+      <li>Odpri to stran v brskalniku <b>Safari</b>.</li>
+      <li>Tapni gumb <b>Deli</b> (kvadratek s puščico ↑ na dnu).</li>
+      <li>Podrsaj in izberi <b>»Dodaj na začetni zaslon«</b>.</li>
+      <li>Tapni <b>Dodaj</b> — Terminko se pojavi kot aplikacija. ✅</li>
+    </ol>
+  </div>
 
-  <h3>💻 Računalnik</h3>
-  <p>Samo shrani ta naslov med zaznamke — deluje v vsakem brskalniku.</p>
+  <div class="plat">
+    <h3>🤖 Android</h3>
+    <ol>
+      <li>Tapni <b>modri gumb zgoraj</b> in prenesi datoteko.</li>
+      <li>Odpri jo; če vpraša, dovoli <b>namestitev iz tega vira</b>.</li>
+      <li>Namesti — deluje tudi z obvestili v ozadju. ✅</li>
+    </ol>
+  </div>
 
-  <p style="margin-top:16px; font-size:12px">Terminko je neuradna aplikacija in ni povezana
-  z e-Upravo ali Republiko Slovenijo. Podatki: e-uprava.gov.si.</p>
+  <div class="plat">
+    <h3>💻 Računalnik</h3>
+    <ol><li>Shrani ta naslov med zaznamke — deluje v vsakem brskalniku.</li></ol>
+  </div>
+
+  <p class="foot">Terminko je neuradna aplikacija in ni povezana z e-Upravo,<br>
+  Ministrstvom za infrastrukturo ali Republiko Slovenijo.<br>Vir podatkov: e-uprava.gov.si</p>
 </div>
 
 <script>
-const API = localStorage.getItem("terminko_api") ||
-            new URLSearchParams(location.search).get("api") ||
-            "https://terminko-backend.onrender.com";
-if (new URLSearchParams(location.search).get("api"))
-  localStorage.setItem("terminko_api", new URLSearchParams(location.search).get("api"));
+const API = (()=> {
+  const q = new URLSearchParams(location.search).get("api");
+  if(q){ localStorage.setItem("terminko_api", q); return q; }
+  return localStorage.getItem("terminko_api") || "https://terminko-backend.onrender.com";
+})();
 
 const $ = s => document.querySelector(s);
-let debounceT = null, wakeTries = 0;
+
+// Kraji po območjih. [prikaz, poizvedbeni_token?]  (token privzeto = VELIKE črke prikaza)
+const REGIONS = [
+  {id:"", name:"Vsa območja", cities:[]},
+  {id:"Območje 1", name:"1 · Primorska, Notranjska", cities:[
+    ["Ajdovščina"],["Idrija"],["Ilirska Bistrica"],["Koper"],["Nova Gorica"],["Postojna"],["Sežana"],["Tolmin"]]},
+  {id:"Območje 2", name:"2 · Osrednja, Gorenjska", cities:[
+    ["Domžale"],["Jesenice"],["Kranj"],["Ljubljana"],["Vrhnika"]]},
+  {id:"Območje 3", name:"3 · Savinjska, Koroška", cities:[
+    ["Celje"],["Laško"],["Ravne na Koroškem"],["Slovenj Gradec"],["Slovenske Konjice","KONJICE"],
+    ["Šentjur","ENTJUR"],["Šmarje pri Jelšah","MARJE"],["Trbovlje"],["Velenje"]]},
+  {id:"Območje 4", name:"4 · Dolenjska, Posavje", cities:[
+    ["Brežice"],["Črnomelj","RNOMELJ"],["Kočevje"],["Krško"],["Novo mesto"]]},
+  {id:"Območje 5", name:"5 · Podravje, Pomurje", cities:[
+    ["Maribor"],["Murska Sobota"],["Ormož"],["Ptuj"],["Slovenska Bistrica"]]}
+];
+
+// napolni Območje select
+const obmSel = $("#fObm");
+REGIONS.forEach(r => obmSel.append(new Option(r.name, r.id)));
+
+function fillKraj(){
+  const reg = obmSel.value;
+  const sel = $("#fKraj");
+  sel.innerHTML = "";
+  sel.append(new Option("Vsi kraji", ""));
+  let list;
+  if(reg){
+    list = REGIONS.find(r => r.id === reg).cities.slice();
+  } else {
+    list = REGIONS.flatMap(r => r.cities);
+    list.sort((a,b)=> a[0].localeCompare(b[0],"sl"));
+  }
+  list.forEach(([name, tok]) => {
+    const o = new Option(name, tok || name.toUpperCase());
+    sel.append(o);
+  });
+}
+fillKraj();
+
+let debT = null;
+function scheduleLoad(){ clearTimeout(debT); debT = setTimeout(load, 120); }
+
+obmSel.onchange = () => { fillKraj(); scheduleLoad(); };
+$("#fKraj").onchange = scheduleLoad;
+$("#fCat").onchange = scheduleLoad;
+$("#segVrsta").onchange = scheduleLoad;
+$("#segDni").onchange = scheduleLoad;
+
+$("#reset").onclick = () => {
+  $("#v_").checked = true;
+  $("#d_30").checked = true;
+  $("#fCat").value = "B";
+  obmSel.value = "";
+  fillKraj();
+  load();
+};
+
+function activeVrsta(){ return document.querySelector('input[name=vrsta]:checked').value; }
+function activeDni(){ return document.querySelector('input[name=dni]:checked').value; }
 
 function fmtDate(iso){
   const d = new Date(iso + "T00:00:00");
   const dnevi = ["nedelja","ponedeljek","torek","sreda","četrtek","petek","sobota"];
-  return d.toLocaleDateString("sl-SI", {day:"numeric", month:"long"}) + " · " + dnevi[d.getDay()];
+  const meseci = ["januar","februar","marec","april","maj","junij","julij","avgust","september","oktober","november","december"];
+  return {big: d.getDate() + ". " + meseci[d.getMonth()], small: dnevi[d.getDay()]};
 }
 
+let wakeTries = 0;
 async function load(){
   const p = new URLSearchParams();
-  if ($("#fVrsta").value) p.set("vrsta", $("#fVrsta").value);
-  if ($("#fCat").value)   p.set("cat",   $("#fCat").value);
-  if ($("#fObm").value)   p.set("obmocje", $("#fObm").value);
-  if ($("#fIsk").value.trim()) p.set("lokacija", $("#fIsk").value.trim());
-  if ($("#fDni").value){
+  if(activeVrsta()) p.set("vrsta", activeVrsta());
+  if($("#fCat").value) p.set("cat", $("#fCat").value);
+  if(obmSel.value) p.set("obmocje", obmSel.value);
+  if($("#fKraj").value) p.set("lokacija", $("#fKraj").value);  // ze VELIKE crke
+  if(activeDni()){
     const t = new Date(), e = new Date();
-    e.setDate(e.getDate() + parseInt($("#fDni").value));
+    e.setDate(e.getDate() + parseInt(activeDni()));
     p.set("dateFrom", t.toISOString().slice(0,10));
-    p.set("dateTo",   e.toISOString().slice(0,10));
+    p.set("dateTo", e.toISOString().slice(0,10));
   }
 
-  $("#out").innerHTML = '<div class="wake"><span class="spin"></span>Nalagam termine…</div>';
+  if(!wakeTries){
+    $("#out").innerHTML = '<div class="state"><span class="spin"></span>Nalagam termine…</div>';
+  }
   try{
     const ctrl = new AbortController();
-    setTimeout(() => ctrl.abort(), 15000);
+    const to = setTimeout(()=>ctrl.abort(), 15000);
     const r = await fetch(API + "/api/slots?" + p, {signal: ctrl.signal});
+    clearTimeout(to);
     if(!r.ok) throw new Error("HTTP " + r.status);
     const d = await r.json();
     wakeTries = 0;
     render(d);
   }catch(e){
     wakeTries++;
-    if(wakeTries <= 12){
-      $("#out").innerHTML = '<div class="wake"><span class="spin"></span>' +
-        '<b>Strežnik se prebuja…</b><br>Brezplačni strežnik po neaktivnosti zaspi — ' +
-        'zbujanje traja do minute. Poskušam znova (' + wakeTries + '/12).</div>';
-      setTimeout(load, 10000);
+    if(wakeTries <= 15){
+      const pct = Math.round(wakeTries/15*100);
+      $("#rbar").hidden = true;
+      $("#out").innerHTML =
+        '<div class="state"><div class="big">☕</div><h3>Strežnik se prebuja…</h3>' +
+        '<p>Brezplačni strežnik po nekaj minutah neaktivnosti zaspi.<br>' +
+        'Prvo zbujanje traja do ~1 minute — počakaj trenutek.</p>' +
+        '<div class="prog"><i style="width:'+pct+'%"></i></div></div>';
+      setTimeout(load, 7000);
     }else{
-      $("#out").innerHTML = '<div class="empty">Strežnik trenutno ni dosegljiv. Poskusi kasneje.</div>';
+      $("#out").innerHTML =
+        '<div class="state"><div class="big">😕</div><h3>Strežnik ni dosegljiv</h3>' +
+        '<p>Poskusi znova čez nekaj minut.</p></div>';
     }
   }
 }
 
 function render(d){
   $("#cnt").textContent = d.count;
+  $("#rbar").hidden = false;
   if(d.last_fetch_seconds_ago != null){
-    const min = Math.round(d.last_fetch_seconds_ago / 60);
-    $("#fresh").textContent = "podatki stari " + (min < 1 ? "<1 min" : min + " min");
-  }
+    const m = Math.round(d.last_fetch_seconds_ago / 60);
+    $("#fresh").textContent = "osveženo " + (m < 1 ? "pravkar" : "pred " + m + " min");
+  } else $("#fresh").textContent = "";
+
   if(!d.slots.length){
-    $("#out").innerHTML = '<div class="empty">Ni terminov za izbrane filtre. 🔍<br>Poskusi razširiti iskanje.</div>';
+    $("#out").innerHTML =
+      '<div class="state"><div class="big">🔍</div><h3>Ni prostih terminov</h3>' +
+      '<p>Za te filtre trenutno ni terminov.<br>Poskusi razširiti območje ali obdobje.</p></div>';
     return;
   }
+
   let html = "", lastDay = "";
   for(const s of d.slots){
     if(s.datum_iso !== lastDay){
       lastDay = s.datum_iso;
-      html += '<div class="day">📅 ' + fmtDate(s.datum_iso) + '</div>';
+      const f = fmtDate(s.datum_iso);
+      html += '<div class="day"><span class="cap">'+f.big+'</span> <small>'+f.small+'</small></div>';
     }
-    const pill = s.vrsta === "Teorija"
-      ? '<span class="pill teo">Teorija</span>'
-      : '<span class="pill voz">Vožnja</span>';
-    html += '<div class="slot"><div class="time">' + esc(s.ura) + '</div>' +
-      '<div class="info"><div class="city">' + esc(s.mesto) + '</div>' +
-      '<div class="sub">' + esc(s.kategorije) + (s.naslov ? " · " + esc(s.naslov) : "") + '</div></div>' +
-      pill + '</div>';
+    const teo = s.vrsta === "Teorija";
+    const pill = teo ? '<span class="pill teo">Teorija</span>' : '<span class="pill voz">Vožnja</span>';
+    const sub = esc(s.kategorije) + (s.naslov ? ' · ' + esc(s.naslov) : '');
+    html += '<div class="slot'+(teo?' teo':'')+'">'+
+      '<div class="time">'+esc(s.ura)+'</div><div class="bar"></div>'+
+      '<div class="info"><div class="city">'+esc(s.mesto)+'</div>'+
+      '<div class="sub">'+sub+'</div></div>'+ pill +'</div>';
   }
   $("#out").innerHTML = html;
 }
@@ -251,21 +416,13 @@ function render(d){
 function esc(x){ return String(x ?? "").replace(/[&<>"]/g,
   c => ({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;"}[c])); }
 
-document.querySelectorAll(".filters select").forEach(el => el.onchange = load);
-$("#fIsk").oninput = () => { clearTimeout(debounceT); debounceT = setTimeout(load, 400); };
-
 // Install sheet
-const open = () => { $("#sheet").classList.add("open"); $("#sheetBack").classList.add("open"); };
-const close = () => { $("#sheet").classList.remove("open"); $("#sheetBack").classList.remove("open"); };
-$("#installBtn").onclick = open;
-$("#sheetClose").onclick = close;
-$("#sheetBack").onclick = close;
+const openSheet = ()=>{ $("#sheet").classList.add("open"); $("#sheetBack").classList.add("open"); };
+const closeSheet = ()=>{ $("#sheet").classList.remove("open"); $("#sheetBack").classList.remove("open"); };
+$("#installBtn").onclick = openSheet;
+$("#sheetBack").onclick = closeSheet;
 
-// Native PWA install prompt (Android Chrome)
-let deferredPrompt = null;
-window.addEventListener("beforeinstallprompt", e => { e.preventDefault(); deferredPrompt = e; });
-
-if("serviceWorker" in navigator) navigator.serviceWorker.register("sw.js");
+if("serviceWorker" in navigator) navigator.serviceWorker.register("sw.js").catch(()=>{});
 load();
 </script>
 </body>

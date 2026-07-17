@@ -49,6 +49,22 @@
               color:#fff; border-radius:22px; padding:8px 14px; font-size:13px; font-weight:700;
               cursor:pointer; white-space:nowrap; display:flex; align-items:center; gap:5px}
   .installBtn:active{transform:scale(.96)}
+  .heartBtn{background:rgba(255,255,255,.16); border:1px solid rgba(255,255,255,.35);
+            width:36px; height:36px; border-radius:50%; font-size:15px; cursor:pointer;
+            display:grid; place-items:center; padding:0; flex-shrink:0}
+  .heartBtn:active{transform:scale(.9)}
+
+  /* Support card (dno seznama) */
+  .supCard{margin:26px 14px 6px; padding:18px 18px 20px; text-align:center;
+           background:linear-gradient(160deg,var(--blue-050),var(--card));
+           border:1px solid var(--line); border-radius:18px; box-shadow:var(--shadow)}
+  .supCard .em{font-size:30px}
+  .supCard h4{margin:6px 0 4px; font-size:16px; letter-spacing:-.01em}
+  .supCard p{margin:0 0 13px; font-size:13px; color:var(--mut); line-height:1.5}
+  .supBtn{display:inline-flex; align-items:center; gap:8px; background:var(--blue); color:#fff;
+          text-decoration:none; font-weight:800; font-size:14.5px; padding:11px 22px;
+          border-radius:12px; box-shadow:0 4px 14px rgba(20,102,194,.3)}
+  .supBtn:active{transform:scale(.97)}
 
   /* ---------- Filter card ---------- */
   .fwrap{padding:14px 14px 4px}
@@ -156,6 +172,7 @@
     <h1>Terminko</h1>
     <div class="sub">Prosti termini vozniških izpitov</div>
   </div>
+  <button class="heartBtn" id="heartBtn" title="Podpri">❤️</button>
   <button class="installBtn" id="installBtn">📲 Namesti</button>
 </header>
 
@@ -260,12 +277,30 @@
   Ministrstvom za infrastrukturo ali Republiko Slovenijo.<br>Vir podatkov: e-uprava.gov.si</p>
 </div>
 
+<!-- DONATE SHEET -->
+<div class="sheetBack" id="donBack"></div>
+<div class="sheet" id="donSheet">
+  <div class="grab"></div>
+  <h2>Podpri Terminko ☕</h2>
+  <p class="lead">Terminko je in bo vedno <b>brezplačen</b>, brez oglasov.</p>
+  <p style="font-size:14px; color:var(--mut); line-height:1.6; margin:2px 0 18px">
+    Če ti je aplikacija prihranila čas in živce pri iskanju termina, me lahko
+    počastiš s kavo. Vsak prispevek pomaga, da strežnik teče in da aplikacijo
+    razvijam naprej. Hvala! 🙏
+  </p>
+  <a class="dlBtn" id="kofiBtn" href="#" target="_blank" rel="noopener">☕ Časti kavo (Ko-fi)</a>
+  <p class="foot">Prispevek je popolnoma prostovoljen. Hvala za podporo! ❤️</p>
+</div>
+
 <script>
 const API = (()=> {
   const q = new URLSearchParams(location.search).get("api");
   if(q){ localStorage.setItem("terminko_api", q); return q; }
   return localStorage.getItem("terminko_api") || "https://terminko-backend.onrender.com";
 })();
+
+// >>> ZAMENJAJ z lastnim Ko-fi linkom (ko ustvaris racun na ko-fi.com) <<<
+const KOFI = "https://ko-fi.com/terminko";
 
 const $ = s => document.querySelector(s);
 
@@ -411,17 +446,30 @@ function render(d){
       '<div class="info"><div class="city">'+esc(s.mesto)+'</div>'+
       '<div class="sub">'+sub+'</div></div>'+ pill +'</div>';
   }
+  html += '<div class="supCard"><div class="em">☕</div>'+
+    '<h4>Ti je Terminko v pomoč?</h4>'+
+    '<p>Aplikacija je brezplačna. Če želiš, podpri razvoj in strežnik.</p>'+
+    '<a class="supBtn" href="'+KOFI+'" target="_blank" rel="noopener">❤️ Podpri</a></div>';
   $("#out").innerHTML = html;
 }
 
 function esc(x){ return String(x ?? "").replace(/[&<>"]/g,
   c => ({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;"}[c])); }
 
-// Install sheet
-const openSheet = ()=>{ $("#sheet").classList.add("open"); $("#sheetBack").classList.add("open"); };
-const closeSheet = ()=>{ $("#sheet").classList.remove("open"); $("#sheetBack").classList.remove("open"); };
-$("#installBtn").onclick = openSheet;
-$("#sheetBack").onclick = closeSheet;
+// Sheets (namesti + podpri)
+function sheet(el, back){
+  const open = ()=>{ $(el).classList.add("open"); $(back).classList.add("open"); };
+  const close = ()=>{ $(el).classList.remove("open"); $(back).classList.remove("open"); };
+  $(back).onclick = close;
+  return open;
+}
+const openInstall = sheet("#sheet", "#sheetBack");
+const openDonate  = sheet("#donSheet", "#donBack");
+$("#installBtn").onclick = openInstall;
+$("#heartBtn").onclick = openDonate;
+
+// Ko-fi linki
+$("#kofiBtn").href = KOFI;
 
 if("serviceWorker" in navigator) navigator.serviceWorker.register("sw.js").catch(()=>{});
 load();

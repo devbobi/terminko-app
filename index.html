@@ -62,8 +62,8 @@
   .supCard h4{margin:6px 0 4px; font-size:16px; letter-spacing:-.01em}
   .supCard p{margin:0 0 13px; font-size:13px; color:var(--mut); line-height:1.5}
   .supBtn{display:inline-flex; align-items:center; gap:8px; background:var(--blue); color:#fff;
-          text-decoration:none; font-weight:800; font-size:14.5px; padding:11px 22px;
-          border-radius:12px; box-shadow:0 4px 14px rgba(20,102,194,.3)}
+          text-decoration:none; font-family:inherit; font-weight:800; font-size:14.5px; padding:11px 22px;
+          border:none; cursor:pointer; border-radius:12px; box-shadow:0 4px 14px rgba(20,102,194,.3)}
   .supBtn:active{transform:scale(.97)}
 
   /* ---------- Filter card ---------- */
@@ -140,6 +140,18 @@
   @keyframes sp{to{transform:rotate(360deg)}}
   .prog{height:5px; background:var(--seg); border-radius:3px; overflow:hidden; margin:14px auto 0; max-width:220px}
   .prog>i{display:block; height:100%; background:var(--blue); transition:width .3s}
+
+  /* Flik donate card */
+  .flikCard{background:linear-gradient(135deg,#1466C2,#0E4E9B); border-radius:16px;
+            padding:18px 16px; text-align:center; color:#fff; box-shadow:0 6px 20px rgba(20,102,194,.3)}
+  .flikLbl{font-size:12px; font-weight:700; opacity:.85; letter-spacing:.04em; text-transform:uppercase}
+  .flikNum{font-size:30px; font-weight:800; letter-spacing:.02em; margin:5px 0 13px;
+           font-variant-numeric:tabular-nums}
+  .copyBtn{background:rgba(255,255,255,.18); border:1px solid rgba(255,255,255,.4); color:#fff;
+           font:inherit; font-weight:700; font-size:14px; padding:11px 18px; border-radius:11px;
+           cursor:pointer; width:100%}
+  .copyBtn:active{transform:scale(.97)}
+  .copyBtn.done{background:#fff; color:var(--blue); border-color:#fff}
 
   /* ---------- Install sheet ---------- */
   .sheetBack{position:fixed; inset:0; background:rgba(10,20,35,.55); z-index:50; opacity:0;
@@ -281,15 +293,31 @@
 <div class="sheetBack" id="donBack"></div>
 <div class="sheet" id="donSheet">
   <div class="grab"></div>
-  <h2>Podpri Terminko ☕</h2>
+  <h2>Podpri Terminko ❤️</h2>
   <p class="lead">Terminko je in bo vedno <b>brezplačen</b>, brez oglasov.</p>
-  <p style="font-size:14px; color:var(--mut); line-height:1.6; margin:2px 0 18px">
+  <p style="font-size:14px; color:var(--mut); line-height:1.6; margin:2px 0 16px">
     Če ti je aplikacija prihranila čas in živce pri iskanju termina, me lahko
-    počastiš s kavo. Vsak prispevek pomaga, da strežnik teče in da aplikacijo
-    razvijam naprej. Hvala! 🙏
+    počastiš s poljubnim prispevkom prek <b>Flika</b> — hitro, brez provizij. Hvala! 🙏
   </p>
-  <a class="dlBtn" id="kofiBtn" href="#" target="_blank" rel="noopener">☕ Časti kavo (Ko-fi)</a>
-  <p class="foot">Prispevek je popolnoma prostovoljen. Hvala za podporo! ❤️</p>
+
+  <div class="flikCard">
+    <div class="flikLbl">Flik na številko</div>
+    <div class="flikNum" id="flikNum">031 234 478</div>
+    <button class="copyBtn" id="copyBtn">📋 Kopiraj številko</button>
+  </div>
+
+  <div class="plat" style="margin-top:14px">
+    <h3>Kako flikniti?</h3>
+    <ol>
+      <li>Odpri svojo <b>bančno aplikacijo</b> (ali Flik).</li>
+      <li>Izberi <b>Flik → Pošlji denar</b>.</li>
+      <li>Vpiši številko <b>031 234 478</b>.</li>
+      <li>Vpiši poljuben znesek in pošlji. ✅</li>
+    </ol>
+  </div>
+
+  <p class="foot">Prispevek je popolnoma prostovoljen. Deluje v slovenskih<br>
+  bančnih aplikacijah, ki podpirajo Flik. Hvala za podporo! ❤️</p>
 </div>
 
 <script>
@@ -299,7 +327,7 @@ const API = (()=> {
   return localStorage.getItem("terminko_api") || "https://terminko-backend.onrender.com";
 })();
 
-const KOFI = "https://ko-fi.com/sancheztobi";
+const FLIK = "031 234 478";
 
 const $ = s => document.querySelector(s);
 
@@ -445,11 +473,12 @@ function render(d){
       '<div class="info"><div class="city">'+esc(s.mesto)+'</div>'+
       '<div class="sub">'+sub+'</div></div>'+ pill +'</div>';
   }
-  html += '<div class="supCard"><div class="em">☕</div>'+
+  html += '<div class="supCard"><div class="em">❤️</div>'+
     '<h4>Ti je Terminko v pomoč?</h4>'+
-    '<p>Aplikacija je brezplačna. Če želiš, podpri razvoj in strežnik.</p>'+
-    '<a class="supBtn" href="'+KOFI+'" target="_blank" rel="noopener">❤️ Podpri</a></div>';
+    '<p>Aplikacija je brezplačna. Če želiš, me počasti s Flikom.</p>'+
+    '<button class="supBtn" id="supBtn">❤️ Podpri</button></div>';
   $("#out").innerHTML = html;
+  $("#supBtn").onclick = openDonate;
 }
 
 function esc(x){ return String(x ?? "").replace(/[&<>"]/g,
@@ -467,8 +496,18 @@ const openDonate  = sheet("#donSheet", "#donBack");
 $("#installBtn").onclick = openInstall;
 $("#heartBtn").onclick = openDonate;
 
-// Ko-fi linki
-$("#kofiBtn").href = KOFI;
+// Kopiraj Flik številko
+$("#copyBtn").onclick = () => {
+  const num = FLIK.replace(/\s/g, "");
+  const done = () => {
+    const b = $("#copyBtn");
+    b.textContent = "✅ Kopirano!";
+    b.classList.add("done");
+    setTimeout(()=>{ b.textContent = "📋 Kopiraj številko"; b.classList.remove("done"); }, 1800);
+  };
+  if(navigator.clipboard) navigator.clipboard.writeText(num).then(done).catch(done);
+  else done();
+};
 
 if("serviceWorker" in navigator) navigator.serviceWorker.register("sw.js").catch(()=>{});
 load();

@@ -1,5 +1,5 @@
 // Terminko PWA service worker - cache app shell, API vedno svez (network-first).
-const CACHE = "terminko-v5";
+const CACHE = "terminko-v6";
 const SHELL = ["./", "index.html", "manifest.webmanifest", "icon-192.png", "icon-512.png"];
 
 self.addEventListener("install", e => {

@@ -1,5 +1,5 @@
 // Terminko PWA service worker - cache app shell, API vedno svez (network-first).
-const CACHE = "terminko-v6";
+const CACHE = "terminko-v7";
 const SHELL = ["./", "index.html", "manifest.webmanifest", "icon-192.png", "icon-512.png"];
 
 self.addEventListener("install", e => {
@@ -16,8 +16,8 @@ self.addEventListener("activate", e => {
 
 self.addEventListener("fetch", e => {
   const url = new URL(e.request.url);
-  // API klici in APK: vedno omrezje (brez cache)
-  if (url.pathname.includes("/api/") || url.pathname.endsWith(".apk")) return;
+  // Tuji origin (ORDS API na Oracle ADB) in APK: vedno omrezje, brez cache
+  if (url.origin !== self.location.origin || url.pathname.endsWith(".apk")) return;
   // App shell: cache-first z osvezitvijo v ozadju
   e.respondWith(
     caches.match(e.request).then(cached => {

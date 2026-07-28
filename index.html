@@ -321,10 +321,12 @@
 </div>
 
 <script>
+// Javni ORDS endpoint na Oracle Autonomous Database (ne zaspi, veljaven HTTPS).
 const API = (()=> {
   const q = new URLSearchParams(location.search).get("api");
   if(q){ localStorage.setItem("terminko_api", q); return q; }
-  return localStorage.getItem("terminko_api") || "https://terminko-backend.onrender.com";
+  return localStorage.getItem("terminko_api") ||
+    "https://gf938ac87d7cc0c-ibotdb.adb.eu-madrid-3.oraclecloudapps.com/ords/terminko/public";
 })();
 
 const FLIK = "031 234 478";
@@ -398,50 +400,76 @@ function fmtDate(iso){
   return {big: d.getDate() + ". " + meseci[d.getMonth()], small: dnevi[d.getDay()]};
 }
 
-let wakeTries = 0;
-async function load(){
-  const p = new URLSearchParams();
-  if(activeVrsta()) p.set("vrsta", activeVrsta());
-  if($("#fCat").value) p.set("cat", $("#fCat").value);
-  if(obmSel.value) p.set("obmocje", obmSel.value);
-  if($("#fKraj").value) p.set("lokacija", $("#fKraj").value);  // ze VELIKE crke
+// Vse aktivne termine prenesemo enkrat, filtriranje se dogaja lokalno.
+let allSlots = null;   // celoten posnetek iz baze
+let lastSync = null;   // unix epoch (sekunde, UTC)
+
+async function fetchAll(){
+  const ctrl = new AbortController();
+  const to = setTimeout(()=>ctrl.abort(), 20000);
+  try{
+    const r = await fetch(API + "/slots", {signal: ctrl.signal});
+    if(!r.ok) throw new Error("HTTP " + r.status);
+    const d = await r.json();
+    allSlots = d.slots || [];
+    lastSync = d.last_sync ? Number(d.last_sync) : null;
+  } finally {
+    clearTimeout(to);
+  }
+}
+
+function applyFilters(){
+  if(!allSlots) return;
+  const vrsta = activeVrsta();
+  const cat   = ($("#fCat").value || "").toUpperCase();
+  const obm   = obmSel.value;
+  const kraj  = ($("#fKraj").value || "").toUpperCase();  // ze VELIKE crke
+
+  let from = null, to = null;
   if(activeDni()){
     const t = new Date(), e = new Date();
     e.setDate(e.getDate() + parseInt(activeDni()));
-    p.set("dateFrom", t.toISOString().slice(0,10));
-    p.set("dateTo", e.toISOString().slice(0,10));
+    from = t.toISOString().slice(0,10);
+    to   = e.toISOString().slice(0,10);
   }
 
-  if(!wakeTries){
-    $("#out").innerHTML = '<div class="state"><span class="spin"></span>Nalagam termine…</div>';
-  }
+  const out = allSlots.filter(s => {
+    if(vrsta && s.vrsta !== vrsta) return false;
+    if(cat && !(s.kategorije || "").replace(/\s+/g,"").toUpperCase().split(",").includes(cat)) return false;
+    if(obm && !(s.obmocje || "").includes(obm)) return false;
+    if(kraj && !((s.mesto || "") + " " + (s.naslov || "")).toUpperCase().includes(kraj)) return false;
+    if(from && s.datum_iso < from) return false;
+    if(to   && s.datum_iso > to)   return false;
+    return true;
+  });
+
+  render({
+    count: out.length,
+    slots: out,
+    last_fetch_seconds_ago: lastSync ? (Date.now()/1000 - lastSync) : null
+  });
+}
+
+async function load(){
+  if(allSlots){ applyFilters(); return; }   // filtriranje brez klica na omrezje
+  $("#out").innerHTML = '<div class="state"><span class="spin"></span>Nalagam termine…</div>';
   try{
-    const ctrl = new AbortController();
-    const to = setTimeout(()=>ctrl.abort(), 15000);
-    const r = await fetch(API + "/api/slots?" + p, {signal: ctrl.signal});
-    clearTimeout(to);
-    if(!r.ok) throw new Error("HTTP " + r.status);
-    const d = await r.json();
-    wakeTries = 0;
-    render(d);
+    await fetchAll();
+    applyFilters();
   }catch(e){
-    wakeTries++;
-    if(wakeTries <= 15){
-      const pct = Math.round(wakeTries/15*100);
-      $("#rbar").hidden = true;
-      $("#out").innerHTML =
-        '<div class="state"><div class="big">☕</div><h3>Strežnik se prebuja…</h3>' +
-        '<p>Brezplačni strežnik po nekaj minutah neaktivnosti zaspi.<br>' +
-        'Prvo zbujanje traja do ~1 minute — počakaj trenutek.</p>' +
-        '<div class="prog"><i style="width:'+pct+'%"></i></div></div>';
-      setTimeout(load, 7000);
-    }else{
-      $("#out").innerHTML =
-        '<div class="state"><div class="big">😕</div><h3>Strežnik ni dosegljiv</h3>' +
-        '<p>Poskusi znova čez nekaj minut.</p></div>';
-    }
+    $("#rbar").hidden = true;
+    $("#out").innerHTML =
+      '<div class="state"><div class="big">😕</div><h3>Termini niso dosegljivi</h3>' +
+      '<p>Preveri internetno povezavo<br>in poskusi znova čez trenutek.</p></div>';
   }
 }
+
+// tiho osvezevanje v ozadju (podatki se v bazi osvezijo vsakih 5 min)
+async function refresh(){
+  try{ await fetchAll(); applyFilters(); }catch(e){ /* pusti stare podatke */ }
+}
+setInterval(()=>{ if(!document.hidden) refresh(); }, 120000);
+document.addEventListener("visibilitychange", ()=>{ if(!document.hidden) refresh(); });
 
 function render(d){
   $("#cnt").textContent = d.count;

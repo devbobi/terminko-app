@@ -4,11 +4,17 @@
 // v predpomnilniku. Cache je zanjo samo rezerva za offline. Staticne datoteke
 // (ikone, manifest) so cache-first, ker se skoraj ne spreminjajo.
 // API na tujem originu (ORDS) se ne predpomni nikoli.
-const CACHE = "terminko-v8";
+const CACHE = "terminko-v9";
 const SHELL = ["./", "index.html", "manifest.webmanifest", "icon-192.png", "icon-512.png"];
 
 self.addEventListener("install", e => {
   e.waitUntil(caches.open(CACHE).then(c => c.addAll(SHELL)).then(() => self.skipWaiting()));
+});
+
+// Stran lahko zahteva, naj nova verzija takoj prevzame nadzor (brez cakanja,
+// da uporabnik zapre vse zavihke). Ob prevzemu se stran sama osvezi.
+self.addEventListener("message", e => {
+  if (e.data && e.data.type === "SKIP_WAITING") self.skipWaiting();
 });
 
 self.addEventListener("activate", e => {

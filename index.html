@@ -537,7 +537,31 @@ $("#copyBtn").onclick = () => {
   else done();
 };
 
-if("serviceWorker" in navigator) navigator.serviceWorker.register("sw.js").catch(()=>{});
+// Service worker + samodejna osvezitev, ko nova razlicica prevzame nadzor.
+// Brez tega uporabnik po posodobitvi se enkrat vidi staro stran iz predpomnilnika.
+if("serviceWorker" in navigator){
+  let reloading = false;
+  navigator.serviceWorker.addEventListener("controllerchange", () => {
+    if(reloading) return;          // varovalka pred zanko osvezevanja
+    reloading = true;
+    location.reload();
+  });
+
+  navigator.serviceWorker.register("sw.js").then(reg => {
+    reg.update();                   // ob vsakem odprtju preveri, ali je nova verzija
+    // ce je nova verzija ze cakala ob nalaganju, jo takoj aktiviraj
+    if(reg.waiting) reg.waiting.postMessage({type:"SKIP_WAITING"});
+    reg.addEventListener("updatefound", () => {
+      const sw = reg.installing;
+      if(!sw) return;
+      sw.addEventListener("statechange", () => {
+        if(sw.state === "installed" && navigator.serviceWorker.controller){
+          sw.postMessage({type:"SKIP_WAITING"});
+        }
+      });
+    });
+  }).catch(()=>{});
+}
 load();
 </script>
 </body>

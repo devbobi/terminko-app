@@ -2,7 +2,7 @@
 <html lang="sl">
 <head>
 <meta charset="utf-8">
-<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover, maximum-scale=1">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
 <title>Terminko — prosti termini vozniških izpitov</title>
 <meta name="description" content="Prosti termini za vozniške izpite (teorija in vožnja) po vsej Sloveniji, na enem mestu.">
 <meta name="theme-color" content="#1466C2">
@@ -163,6 +163,10 @@
          max-height:88vh; overflow-y:auto; box-shadow:0 -8px 40px rgba(0,0,0,.25)}
   .sheet.open{transform:translateY(0)}
   .grab{width:38px; height:5px; border-radius:3px; background:var(--line); margin:8px auto 16px}
+  .sheetX{position:absolute; top:14px; right:16px; width:32px; height:32px; border-radius:50%;
+          border:1px solid var(--line); background:var(--bg); color:var(--mut); font:inherit;
+          font-size:17px; line-height:1; cursor:pointer; display:grid; place-items:center; padding:0}
+  .sheetX:active{transform:scale(.92)}
   .sheet h2{margin:0 0 4px; font-size:20px; letter-spacing:-.02em}
   .sheet>p.lead{margin:0 0 6px; color:var(--mut); font-size:14px}
   .plat{border:1px solid var(--line); border-radius:15px; padding:14px 15px; margin-top:13px; background:var(--bg)}
@@ -246,7 +250,7 @@
 <!-- RESULTS BAR -->
 <div class="rbar" id="rbar" hidden>
   <span class="dot"></span>
-  <span class="cnt">Najdenih: <b id="cnt">0</b> terminov</span>
+  <span class="cnt"><span id="cntPre">Najdenih</span> <b id="cnt">0</b> <span id="cntPost">terminov</span></span>
   <span class="fresh" id="fresh"></span>
 </div>
 
@@ -256,10 +260,13 @@
 <div class="sheetBack" id="sheetBack"></div>
 <div class="sheet" id="sheet">
   <div class="grab"></div>
+  <button class="sheetX" data-close aria-label="Zapri">✕</button>
   <h2>Namesti Terminko</h2>
   <p class="lead">Brezplačno, brez registracije. Izberi svojo napravo:</p>
 
   <a class="dlBtn" id="apkBtn" href="terminko.apk" download>⬇️ Prenesi za Android (APK)</a>
+  <p style="margin:-4px 0 12px; text-align:center; font-size:12px; color:var(--mut)">
+    različica 1.1 · 11,7 MB · Android 7 ali novejši</p>
 
   <div class="plat">
     <h3>🍎 iPhone / iPad</h3>
@@ -293,6 +300,7 @@
 <div class="sheetBack" id="donBack"></div>
 <div class="sheet" id="donSheet">
   <div class="grab"></div>
+  <button class="sheetX" data-close aria-label="Zapri">✕</button>
   <h2>Podpri Terminko ❤️</h2>
   <p class="lead">Terminko je in bo vedno <b>brezplačen</b>, brez oglasov.</p>
   <p style="font-size:14px; color:var(--mut); line-height:1.6; margin:2px 0 16px">
@@ -333,7 +341,9 @@ const FLIK = "031 234 478";
 
 const $ = s => document.querySelector(s);
 
-// Kraji po območjih. [prikaz, poizvedbeni_token?]  (token privzeto = VELIKE črke prikaza)
+// Kraji po območjih. [prikaz, iskalni_niz?] — iskalni niz je privzeto prikaz z
+// VELIKIMI črkami; navede se le, kadar e-uprava kraj zapisuje tudi drugače
+// (npr. "Konjice" brez "Slovenske"). Iskanje teče čez mesto IN naslov.
 const REGIONS = [
   {id:"", name:"Vsa območja", cities:[]},
   {id:"Območje 1", name:"1 · Primorska, Notranjska", cities:[
@@ -342,9 +352,9 @@ const REGIONS = [
     ["Domžale"],["Jesenice"],["Kranj"],["Ljubljana"],["Vrhnika"]]},
   {id:"Območje 3", name:"3 · Savinjska, Koroška", cities:[
     ["Celje"],["Laško"],["Ravne na Koroškem"],["Slovenj Gradec"],["Slovenske Konjice","KONJICE"],
-    ["Šentjur","ENTJUR"],["Šmarje pri Jelšah","MARJE"],["Trbovlje"],["Velenje"]]},
+    ["Šentjur"],["Šmarje pri Jelšah"],["Trbovlje"],["Velenje"]]},
   {id:"Območje 4", name:"4 · Dolenjska, Posavje", cities:[
-    ["Brežice"],["Črnomelj","RNOMELJ"],["Kočevje"],["Krško"],["Novo mesto"]]},
+    ["Brežice"],["Črnomelj"],["Kočevje"],["Krško"],["Novo mesto"]]},
   {id:"Območje 5", name:"5 · Podravje, Pomurje", cities:[
     ["Maribor"],["Murska Sobota"],["Ormož"],["Ptuj"],["Slovenska Bistrica"]]}
 ];
@@ -393,6 +403,15 @@ $("#reset").onclick = () => {
 function activeVrsta(){ return document.querySelector('input[name=vrsta]:checked').value; }
 function activeDni(){ return document.querySelector('input[name=dni]:checked').value; }
 
+// Datum v obliki YYYY-MM-DD po LOKALNEM casu. toISOString() vrne UTC, zato bi
+// v Sloveniji (UTC+1/+2) med polnocjo in 2h zjutraj filter obdobja zamaknilo
+// za dan nazaj - "30 dni" bi pokazalo 29.
+function localIso(d){
+  return d.getFullYear() + "-" +
+         String(d.getMonth() + 1).padStart(2, "0") + "-" +
+         String(d.getDate()).padStart(2, "0");
+}
+
 function fmtDate(iso){
   const d = new Date(iso + "T00:00:00");
   const dnevi = ["nedelja","ponedeljek","torek","sreda","četrtek","petek","sobota"];
@@ -429,8 +448,8 @@ function applyFilters(){
   if(activeDni()){
     const t = new Date(), e = new Date();
     e.setDate(e.getDate() + parseInt(activeDni()));
-    from = t.toISOString().slice(0,10);
-    to   = e.toISOString().slice(0,10);
+    from = localIso(t);
+    to   = localIso(e);
   }
 
   const out = allSlots.filter(s => {
@@ -471,8 +490,23 @@ async function refresh(){
 setInterval(()=>{ if(!document.hidden) refresh(); }, 120000);
 document.addEventListener("visibilitychange", ()=>{ if(!document.hidden) refresh(); });
 
+// Slovenscina ima ednino, dvojino in mnozino: 1 termin, 2 termina, 3 termini,
+// 5 terminov - "Najdenih 1 terminov" je narobe.
+function sklonTerminov(n){
+  switch(n % 100){
+    case 1:  return ["Najden", "termin"];
+    case 2:  return ["Najdena", "termina"];
+    case 3:
+    case 4:  return ["Najdeni", "termini"];
+    default: return ["Najdenih", "terminov"];
+  }
+}
+
 function render(d){
+  const [pre, post] = sklonTerminov(d.count);
+  $("#cntPre").textContent = pre;
   $("#cnt").textContent = d.count;
+  $("#cntPost").textContent = post;
   $("#rbar").hidden = false;
   if(d.last_fetch_seconds_ago != null){
     const m = Math.round(d.last_fetch_seconds_ago / 60);
@@ -517,6 +551,8 @@ function sheet(el, back){
   const open = ()=>{ $(el).classList.add("open"); $(back).classList.add("open"); };
   const close = ()=>{ $(el).classList.remove("open"); $(back).classList.remove("open"); };
   $(back).onclick = close;
+  $(el).querySelector("[data-close]").onclick = close;
+  document.addEventListener("keydown", e => { if(e.key === "Escape") close(); });
   return open;
 }
 const openInstall = sheet("#sheet", "#sheetBack");

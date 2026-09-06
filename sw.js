@@ -4,7 +4,7 @@
 // v predpomnilniku. Cache je zanjo samo rezerva za offline. Staticne datoteke
 // (ikone, manifest) so cache-first, ker se skoraj ne spreminjajo.
 // API na tujem originu (ORDS) se ne predpomni nikoli.
-const CACHE = "terminko-v9";
+const CACHE = "terminko-v10";
 const SHELL = ["./", "index.html", "manifest.webmanifest", "icon-192.png", "icon-512.png"];
 
 self.addEventListener("install", e => {
